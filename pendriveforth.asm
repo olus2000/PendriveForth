@@ -1545,7 +1545,7 @@ forth_kernel:
     db   "source-len ! source-addr ! -1 source-id ! 0 >in ! parse-eval "
     db   "r> >in ! r> source-id ! r> source-addr ! r> source-len ! ; "
 
-    db 'noname: s" PendriveForth v0.1.1 by olus2000" type nl ; execute '
+    db 'noname: s" PendriveForth v0.1.2 by olus2000" type nl ; execute '
 
     db "noname: begin inp-buffer inp-buffer 50 accept evaluate "
     db   `state @ 0 = if s"  ok." type then nl again ; ' repl defer! quit `
