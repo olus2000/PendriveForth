@@ -34,8 +34,8 @@ Bootable drive
 The """intended""" way to run PendriveForth is by burning it on a USB stick and
 booting directly. My legal team advises me not to recommend this, as I am not
 experienced in osdev or assembly and my code may break something on the machine
-you boot it from. If you want to nevertheless try it you should first identify
-the disk you want to burn the image into with ``lsblk`` or similar tool. Then go
+you boot it from. If you want to try anyway it you should first identify the
+disk you want to burn the image into with ``lsblk`` or similar tool. Then go
 into the repository folder and run::
 
   make
@@ -57,6 +57,8 @@ What's inside
 
 The source code of this project is entirely contained within the file
 `pendriveforth.asm`_. It can be split into several parts:
+
+.. _pendriveforth.asm: ./pendriveforth.asm
 
 
 Bootloader
