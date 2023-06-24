@@ -11,14 +11,6 @@ about stability or safety of the system. I advise running it in an emulator.
 Boot it at your own risk.
 
 
-Gallery
--------
-
-.. image:: ./images/fibonacci.png
-
-.. image:: ./images/exponentiation.jpg
-
-
 How to
 ======
 
@@ -144,3 +136,17 @@ have slightly different definitions.
 
 .. TODO
 .. _Forth-2012: https://forth-standard.org
+
+
+Gallery
+=======
+
+.. figure:: ./images/fibonacci.png
+
+   Fibonacci sequence (emulated in qemu)
+
+.. figure:: ./images/exponentiation.jpg
+
+   Binary exponentiation (booted from pendrive)
+
+
