@@ -13,6 +13,12 @@
 ;   - Commands `push` and `pop` perform `>r` and `r>`
 ;
 ; Stacks share space, grow towards each other.
+;
+;
+; Dictionary:
+;  - Growing up from DICT_START
+;  - Next free cell pointed to by `here`
+;  - Macro `comma` expects `here` in edx and leaves updated `here` in edx
 
 
 ; Less/Greater -> signed
@@ -143,7 +149,6 @@ protected_start:
     sti
     mov [disk_id_something], dl ; Save the disk id something
     mov esp, 0x80000            ; Setup return stack
-    push body_quit              ; Initialisation script will return to quit
     mov ebp, d_stack_base - 4   ; Setup data stack with two values on top
     jmp test
     jmp body_parse_eval
@@ -247,19 +252,30 @@ idtr:
 %endmacro
 
 
+hardware_exception_msg:
+    db "Hardware exception nr "
+    %strlen hardware_exception_msg_len "Hardware exception nr "
+
+
+
 %macro exc_handler 1
     exception_handler_%1:
-        mov ax, %1
-        call print_number
-        call update_cursor
-        pop eax
-        add eax, 2
-        push eax
-        iret
+        pushd
+        mov eax, %1
+        jmp generic_exception_handler
 %endmacro
 
 
 ; exception "handlers"
+
+generic_exception_handler:
+    pushd
+    pushd hardware_exception_msg
+    mov eax, hardware_exception_msg_len
+    call body_type
+    call body_print_number
+    call body_nl
+    jmp body_abort
 
 %assign i 0
 %rep 0x20
@@ -339,15 +355,12 @@ keyboard_interrupt:
     dd .three_of_three  ; 12
 
 
-;;;;; Actual kernel ;;;;;
+;;;;; Assembly helpers ;;;;;
 
 %assign VGA_START   0x0B8000
 %assign VGA_WIDTH   80
 %assign VGA_HEIGHT  25
 %assign VGA_SIZE    VGA_WIDTH * VGA_HEIGHT
-
-cursor:
-    dd 0x00
 
 
 emit_raw:   ; Input ax = color | character, modifies ax, ebx, cx, esi, edi
@@ -436,7 +449,7 @@ die_loop:
     jmp die_loop
 
 
-;;;;; Forth assembly ;;;;;
+;;;;; Asembly words ;;;;;
 
 %define last_word 0 ; link
 
@@ -736,6 +749,12 @@ def_word color, "color", 0 ; ( -- addr )
     call variable
 
 color: dd 0xf00
+
+
+def_word cursor, "cursor", 0 ; ( -- addr )
+    call variable
+
+cursor: dd 0x00
 
 
 def_word emit, "emit", 0 ; ( c -- )
@@ -1425,7 +1444,7 @@ test:
     jmp die
 
 
-;;;;; Forth forth ;;;;;
+;;;;; Forth words ;;;;;
 
 forth_kernel:
 
@@ -1505,7 +1524,7 @@ forth_kernel:
     db ": ?dup ( x -- 0 | x x ) dup if dup then ; "
 
     db "36 constant: k-shr 2A constant: k-shl : shift+ ( c -- c ) 80 + ; "
-    db "0E constant: k-bsp 1C constant: k-ret "
+    db "0E constant: k-bsp 1C constant: k-ret " ; TODO: more key constants
 
     db ": ekey ( -- c ) begin last-ekey @ dup 0 = while drop halt repeat "
     db   "0 last-ekey ! ; "
