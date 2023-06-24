@@ -51,6 +51,19 @@ If you're running Windows or Mac I can't help you, but I'm sure there are tools
 for your system for compilation, emulation and burning drives.
 
 
+Nix/NixOS
+---------
+
+If you're running NixOS, or using Nix on another x86_64-linux system, you can
+build the image with the included flake. Make sure you have the nix command and
+flakes enabled, then run ``nix build github:olus2000/PendriveForth`` to build
+image and link the output to ``./result``.
+
+Unfortunately, due to the way Nix sets permissions on files in the store, the
+image will not work with qemu. An easy workaround is to copy the file ignoring
+all attributes, ``cp --no-preserve=all ./result/pdf.img ~/pdf.img``.
+
+
 What's inside
 =============
 
