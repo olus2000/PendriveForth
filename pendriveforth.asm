@@ -363,7 +363,7 @@ keyboard_interrupt:
 %assign VGA_SIZE    VGA_WIDTH * VGA_HEIGHT
 
 
-emit_raw:   ; Input ax = color | character, modifies ax, ebx, cx, esi, edi
+emit_raw:   ; Input ax = color | character, modifies ebx, ecx, esi, edi
     call scroll_to_cursor
     mov [VGA_START+ebx*2], ax
     inc ebx
@@ -371,7 +371,7 @@ emit_raw:   ; Input ax = color | character, modifies ax, ebx, cx, esi, edi
     ret
 
 
-scroll_to_cursor:   ; Modifies ebx, cx, esi, edi. Leaves cursor in ebx.
+scroll_to_cursor:   ; Modifies ebx, ecx, esi, edi. Leaves cursor in ebx.
     mov ebx, [cursor]
 
 
@@ -388,8 +388,8 @@ scroll_to_cursor:   ; Modifies ebx, cx, esi, edi. Leaves cursor in ebx.
     ret
 
 
-scroll_up:  ; Modfies cx, esi, edi
-    mov cx, VGA_SIZE
+scroll_up:  ; Modfies ecx, esi, edi
+    mov ecx, VGA_SIZE
     mov esi, VGA_START + VGA_WIDTH * 2
     mov edi, VGA_START
     rep movsw
@@ -432,7 +432,8 @@ print_number:   ; Takes number in eax, modifies eax, ebx, ecx, esi, edi
     jl .just_decimal
     add eax, 7
 .just_decimal:
-    add eax, 0xf30
+    add eax, 0x30
+    or eax, [color]
     jmp emit_raw
 
 get_eip:
@@ -726,6 +727,7 @@ def_word nl, "nl", 0 ; ( -- )
 def_word sp, "sp", 0 ; ( -- )
     pushd
     mov eax, 32
+    or eax, [color]
     call emit_raw
     call update_cursor
     popd
@@ -1545,10 +1547,10 @@ forth_kernel:
     db   "source-len ! source-addr ! -1 source-id ! 0 >in ! parse-eval "
     db   "r> >in ! r> source-id ! r> source-addr ! r> source-len ! ; "
 
-    db 'noname: s" PendriveForth v0.1.2 by olus2000" type nl ; execute '
+    db 'noname: s" PendriveForth v0.1.3 by olus2000" type nl ; execute '
 
     db "noname: begin inp-buffer inp-buffer 50 accept evaluate "
-    db   `state @ 0 = if s"  ok." type then nl again ; ' repl defer! quit `
+    db   `state @ 0 = if s"  ok :3" type then nl again ; ' repl defer! quit `
 
 
 forth_kernel_end:

@@ -7,6 +7,11 @@ works in VGA mode 3 with its default codepage 437 charset and 80x25 character
 display.
 
 
+.. figure:: ./images/fibonacci.png
+
+   Hexadecimal fibonacci sequence in PendriveForth
+
+
 **DISCLAIMER:** This is just a personal beginner project. I make no guarantees
 about stability or safety of the system. I advise running it in an emulator.
 Boot it at your own risk.
