@@ -72,7 +72,7 @@ start:
     mov ss, ax
     mov sp, 0       ; setup hardware stack
     mov ah, 0x02    ; Function: Read Sectors From Drive
-    mov al, 0x10    ; !! sector count !!
+    mov al, 0x20    ; !! sector count !!
     mov ch, 0       ; cylinder (actually top 8 bits)
     mov cl, 2       ; sector (actually bottom 4 bits of cylinder
                     ; && 6 bits of sector)
@@ -253,8 +253,8 @@ idtr:
 
 
 hardware_exception_msg:
-    db "Hardware exception nr "
-    %strlen hardware_exception_msg_len "Hardware exception nr "
+    db "Hardware exception nr"
+    %strlen hardware_exception_msg_len "Hardware exception nr"
 
 
 
@@ -1183,6 +1183,24 @@ def_word mul, "*", 0 ; ( n2 n1 -- n3 )
     ret
 
 
+def_word udiv_mod, "um/mod", 0 ; ( ud u -- u1 u2 )
+    mov ebx, eax
+    popd edx
+    popd
+    div ebx
+    pushd edx
+    ret
+
+
+def_word div_mod, "m/mod", 0 ; ( d n -- n1 n2 )
+    mov ebx, eax
+    popd edx
+    popd
+    idiv ebx
+    pushd edx
+    ret
+
+
 def_word eq, "=", 0 ; ( x2 x1 -- x2==x1 )
     popd ecx
     sub ecx, eax
@@ -1269,6 +1287,33 @@ def_word and, "and", 0 ; ( x2 x1 -- x2&x1 )
 def_word or, "or", 0 ; ( x2 x1 -- x2&x1 )
     or eax, [ebp]
     sub ebp, 4
+    ret
+
+
+def_word xor, "xor", 0 ; ( x2 x1 -- x2 & x1 )
+    xor eax, [ebp]
+    sub ebp, 4
+    ret
+
+
+def_word shl, "lshift", 0 ; ( x u -- x<<u )
+    mov ecx, eax
+    popd
+    shl eax, cl
+    ret
+
+
+def_word shr, "rshift", 0 ; ( x u -- x>>u )
+    mov ecx, eax
+    popd
+    shr eax, cl
+    ret
+
+
+def_word sar, "arshift", 0 ; ( x u -- x>>>u )
+    mov ecx, eax
+    popd
+    sar eax, cl
     ret
 
 
@@ -1464,6 +1509,32 @@ forth_kernel:
 
     db ": 2drop ( x2 x1 -- ) drop drop ; "
 
+    db ": s>d ( n -- d ) dup 0 < ; "
+
+    db ": /mod ( n2 n1 -- n4 n3 ) >r s>d r> m/mod ; "
+
+    db ": */mod ( n3 n2 n1 -- n3*n2/n1 ) >r m* r> m/mod ; "
+
+    db ": / ( n2 n1 -- n ) /mod nip ; "
+
+    db ": mod ( n2 n1 -- n ) /mod drop ; "
+
+    db ": 2/ ( n -- n ) 1 arshift ; "
+
+    db ": 2* ( n -- n ) 1 lshift ; "
+
+    db ": 1+ ( n -- n ) 1 + ; "
+
+    db ": 1- ( n -- n ) 1 - ; "
+
+    db ": 0= ( n -- ? ) 0 = ; "
+
+    db ": 0<> ( n -- ? ) 0 <> ; "
+
+    db ": 0> ( n -- ? ) 0 > ; "
+
+    db ": 0< ( n -- ? ) 0 < ; "
+
     db ": ' ( '<name>' -- xt ) parse-name find drop ; "
     
     db ": ['] ( '<name>' -- ) ( compiles: -- xt ) ' literal ; immediate "
@@ -1490,16 +1561,24 @@ forth_kernel:
 
     db ": again ( dest -- ) jump, ; immediate "
 
-    db ": do ( -- dest ) ['] >r dup compile, 1 literal ['] - compile, "
-    db   "compile, here ; immediate "
+    db ": do ( -- 0 dest ) ['] >r dup compile, 1 literal ['] - compile, "
+    db   "compile, 0 here ; immediate "
+
+    db ": (?do) ( limit index -- ) ( r: -- index limit-1 ) "
+    db   "r> -rot 2dup = if 2drop @ else >r 1- >r 4 + then >r ; "
+
+    db ": ?do ( -- orig dest ) ['] (?do) compile, here 4 allot here ; "
+    db   "immediate "
 
     db ": (+loop) ( step -- ) ( r: index limit-1 -- index+step limit-1 ) "
     db   "r> r> rot r> 2dup + dup >r rot 0 < if swap then 2 pick >r within "
     db   "if r> r> 2drop 4 + else @ then >r ; "
 
-    db ": loop ( dest -- ) 1 literal ['] (+loop) compile, , ; immediate "
+    db ": loop ( source dest -- ) 1 literal ['] (+loop) compile, , "
+    db   "dup if here ! else drop then ; immediate "
 
-    db ": +loop ( dest -- ) ['] (+loop) compile, , ; immediate "
+    db ": +loop ( source dest -- ) ['] (+loop) compile, , "
+    db   "dup if here ! else drop then ; immediate "
 
     db ": i r> r> r@ -rot >r >r ; "
 
@@ -1518,12 +1597,16 @@ forth_kernel:
 
     db ": noname: ( -- xt ) here dup current ! ] ; "
 
+    db ": >body ( xt -- addr ) 5 + ; "
+
     db "noname: ( '<name>' -- xt ) parse-name find 0 = "
     db "  if undefined-error then ; ' ' defer! "
 
     db ": cells ( n1 -- n2 ) 4 * ; : cell+ ( n1 -- n2 ) 4 + ; "
 
     db ": ?dup ( x -- 0 | x x ) dup if dup then ; "
+
+    db ": empty ( i*x -- ) depth 0 ?do drop loop ; "
 
     db "36 constant: k-shr 2A constant: k-shl : shift+ ( c -- c ) 80 + ; "
     db "0E constant: k-bsp 1C constant: k-ret " ; TODO: more key constants
@@ -1547,7 +1630,7 @@ forth_kernel:
     db   "source-len ! source-addr ! -1 source-id ! 0 >in ! parse-eval "
     db   "r> >in ! r> source-id ! r> source-addr ! r> source-len ! ; "
 
-    db 'noname: s" PendriveForth v0.1.3 by olus2000" type nl ; execute '
+    db 'noname: s" PendriveForth v0.1.4 by olus2000" type nl ; execute '
 
     db "noname: begin inp-buffer inp-buffer 50 accept evaluate "
     db   `state @ 0 = if s"  ok :3" type then nl again ; ' repl defer! quit `

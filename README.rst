@@ -6,13 +6,17 @@ A bootable 32-bit Forth system for x86 with(out, yet) a visual block editor. It
 works in VGA mode 3 with its default codepage 437 charset and 80x25 character
 display.
 
-
-.. image:: ./images/fibonacci.png
-
-
 **DISCLAIMER:** This is just a personal beginner project. I make no guarantees
 about stability or safety of the system. I advise running it in an emulator.
 Boot it at your own risk.
+
+
+Gallery
+-------
+
+.. image:: ./images/fibonacci.png
+
+.. image:: ./images/exponentiation.jpg
 
 
 How to
