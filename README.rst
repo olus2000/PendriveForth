@@ -44,13 +44,6 @@ That should be enough! Now plug the disk into some computer with an x86
 processor and try booting from it.
 
 
-Non-Linux systems
------------------
-
-If you're running Windows or Mac I can't help you, but I'm sure there are tools
-for your system for compilation, emulation and burning drives.
-
-
 Nix/NixOS
 ---------
 
@@ -62,6 +55,13 @@ image and link the output to ``./result``.
 Unfortunately, due to the way Nix sets permissions on files in the store, the
 image will not work with qemu. An easy workaround is to copy the file ignoring
 all attributes, ``cp --no-preserve=all ./result/pdf.img ~/pdf.img``.
+
+
+Non-Linux systems
+-----------------
+
+If you're running Windows or Mac I can't help you, but I'm sure there are tools
+for your system for compilation, emulation and burning drives.
 
 
 What's inside
