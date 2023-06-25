@@ -11,6 +11,40 @@ about stability or safety of the system. I advise running it in an emulator.
 Boot it at your own risk.
 
 
+Table of contents
+=================
+
+- `Table of contents`_
+
+- `How to`_
+
+  - `Emulator`_
+
+  - `Bootable drive`_
+
+  - `Nix/NixOS`_
+
+  - `Non-Linux systems`_
+
+- `What's inside`_
+
+  - `Bootloader`_
+
+  - `Descriptor tables`_
+
+  - `Assembly helpers`_
+
+  - `Assembly words`_
+
+  - `Forth words`_
+
+- `Stuff in the repo`_
+
+- `Dictionary`_
+
+- `Gallery`_
+
+
 How to
 ======
 
@@ -47,7 +81,7 @@ processor and try booting from it.
 Nix/NixOS
 ---------
 
-If you're running NixOS, or using Nix on another x86_64-linux system, you can
+If you're running NixOS_, or using Nix on another x86_64-linux system, you can
 build the image with the included flake. Make sure you have the nix command and
 flakes enabled, then run ``nix build github:olus2000/PendriveForth`` to build
 image and link the output to ``./result``.
@@ -55,6 +89,9 @@ image and link the output to ``./result``.
 Unfortunately, due to the way Nix sets permissions on files in the store, the
 image will not work with qemu. An easy workaround is to copy the file ignoring
 all attributes, ``cp --no-preserve=all ./result/pdf.img ~/pdf.img``.
+
+
+.. _NixOS: https://nixos.org/
 
 
 Non-Linux systems
@@ -140,8 +177,34 @@ and the repl. It consists of a single, long string which is interpreted by the
 parse-eval loop after boot.
 
 
-Glossary
-========
+Stuff in the repo
+=================
+
+This repository contains:
+
+- Git/project stuff - LICENSE_, `README.rst`_ (you are here!) and `.gitignore`_
+  files
+
+- `pendriveforth.asm`_ - the source code for the project
+
+- Makefile_ - the build+run instructions for the unix ``make`` tool
+
+- images_ folder - Where the images in the Gallery_ reside
+
+- `Nix/NixOS`_ flake files - `flake.lock`_ and `flake.nix`_
+
+.. _LICENSE:            ./LICENSE
+.. _README.rst:         ./README.rst
+.. _.gitignore:         ./.gitgnore
+.. _pendriveforth.asm:  ./pendriveforth.asm
+.. _Makefile:           ./Makefile
+.. _images:             ./images/
+.. _flake.lock:         ./flake.lock
+.. _flake.nix:          ./flake.nix
+
+
+Dictionary
+==========
 
 At some point there will be definitions of every word here. Most of them are
 compatible with the `Forth-2012`_ standard, but some are slightly renamed or
