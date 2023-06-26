@@ -72,7 +72,7 @@ disk you want to burn the image into with ``lsblk`` or similar tool. Then go
 into the repository folder and run::
 
   make
-  cat pdf.img > /dev/your_disk
+  sudo cp pdf.img /dev/your_disk
 
 That should be enough! Now plug the disk into some computer with an x86
 processor and try booting from it.
