@@ -139,7 +139,7 @@ protected_start:
     out PIC1_DATA, al
     out PIC2_DATA, al
 
-    mov al, 0b11111101  ; Only enable the keyboard interrupt
+    mov al, 0b11111100  ; Only enable the keyboard and timer interrupts
     out PIC1_DATA, al
     mov al, 0b11111111
     out PIC2_DATA, al
@@ -225,7 +225,7 @@ idt:
         %assign i i+1
     %endrep
     ; IRQ """handling"""
-    idt_entry die, 8, IDT_INTERRUPT32, IDT_PRESENT
+    idt_entry timer_interrupt, 8, IDT_INTERRUPT32, IDT_PRESENT
     idt_entry keyboard_interrupt, 8, IDT_INTERRUPT32, IDT_PRESENT
     %rep 0xe
         idt_entry die, 8, IDT_INTERRUPT32, IDT_PRESENT
@@ -272,6 +272,7 @@ generic_exception_handler:
     pushd
     pushd hardware_exception_msg
     mov eax, hardware_exception_msg_len
+    call body_nl
     call body_type
     call body_print_number
     call body_nl
@@ -282,6 +283,14 @@ generic_exception_handler:
     exc_handler i
     %assign i i + 1
 %endrep
+
+
+timer_interrupt:
+    add dword [timer_counter], 1
+    push eax
+    end_of_master_interrupt
+    pop eax
+    iret
 
 
 ; Key mapping:
@@ -1414,6 +1423,12 @@ keys:
 times 128 db 0
 
 
+def_word timer_counter, "timer-counter", 0 ; ( -- addr )
+    call variable
+
+timer_counter: dd 0
+
+
 def_word here, "here", 0 ; ( -- addr ) addr is free space, not variable.
     call constant
 
@@ -1618,6 +1633,12 @@ forth_kernel:
     db   "keys k-shr + f@ keys k-shl + f@ or if shift+ then c@ ; "
 
     db ": key ( -- c ) begin ekey e>key ?dup until ; "
+
+    ; Bad apple
+    ; 4DAE = 60FPS
+    db "34 43 out AE 40 out 4D 40 out ( set counter to 60 TPS ) "
+    db ": next-frame ( -- ) begin timer-counter @ 0= while halt repeat "
+    db   "0 timer-counter ! ; "
 
     db "create: inp-buffer 50 allot "
 
